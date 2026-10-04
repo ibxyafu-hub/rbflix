@@ -1,0 +1,6 @@
+{
+  "name": "RBflix - Cinematic Streaming Experience",
+  "description": "Watch movies, series, and RBflix Originals in 4K HDR. Stream your favorite trending films, top rated titles, and personalized watchlists.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
