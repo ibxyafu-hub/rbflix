@@ -23,6 +23,7 @@ export interface Episode {
   thumbnailGradient?: string;
   videoUrl?: string;
   embedUrl?: string;
+  amharicSubtitleUrl?: string;
   status?: ContentStatus;
   createdAt?: string;
   updatedAt?: string;
@@ -54,6 +55,7 @@ export interface BaseContent {
   posterGradient?: string;
   backdropGradient?: string;
   trailerUrl?: string;
+  amharicSubtitleUrl?: string;
   isOriginal?: boolean;
   isFeatured?: boolean;
   isNew?: boolean;

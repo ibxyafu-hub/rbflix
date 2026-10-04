@@ -1,16 +1,48 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@100..900&display=swap');
+
+:root {
+  --ease: cubic-bezier(.2,.8,.2,1);
+  --dur: .6s;
+  --stagger: 70ms;
+}
 
 @layer base {
   html {
     scroll-behavior: smooth;
     color-scheme: dark;
     -webkit-tap-highlight-color: transparent;
+    font-family: 'Inter', system-ui, sans-serif;
   }
 
   body {
     background-color: #141414;
     color: #ffffff;
     overflow-x: hidden;
+  }
+
+  /* Amharic Script Support */
+  [lang="am"] {
+    font-family: 'Noto Sans Ethiopic', sans-serif;
+  }
+
+  /* Custom Subtitle Styling */
+  ::backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  video::cue {
+    background-color: rgba(0, 0, 0, 0.75);
+    color: #ffffff;
+    font-family: 'Inter', 'Noto Sans Ethiopic', sans-serif;
+    font-size: 1.1em;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    line-height: 1.4;
+  }
+
+  :focus-visible {
+    outline: 2px solid white;
+    outline-offset: 2px;
   }
 
   /* Globally hide scrollbar tracks and thumbs while keeping full smooth scrolling functional across all browsers */
@@ -41,22 +73,102 @@
   }
 }
 
+/* Animations Section */
+
 @keyframes kenburns {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.08) translate(-1%, -0.5%);
-  }
-  100% {
-    transform: scale(1.15) translate(0.5%, 1%);
-  }
+  0% { transform: scale(1); }
+  100% { transform: scale(1.09); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes topLoading {
+  0% { transform: scaleX(0); opacity: 1; }
+  80% { transform: scaleX(0.9); opacity: 1; }
+  100% { transform: scaleX(1); opacity: 0; }
+}
+
+@keyframes popScale {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.35); }
+  100% { transform: scale(1); }
 }
 
 .animate-kenburns {
-  animation: kenburns 24s ease-in-out infinite alternate;
+  animation: kenburns 14s ease-in-out infinite alternate;
 }
 
+.shimmer-bg {
+  background: linear-gradient(90deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.3s linear infinite;
+}
+
+.top-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #e50914;
+  z-index: 9999;
+  transform-origin: left;
+  animation: topLoading 1.3s var(--ease) forwards;
+}
+
+.card-reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+
+.card-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.card-reveal.done {
+  transition-delay: 0s !important;
+}
+
+.cinematic-shadow {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 15px rgba(229, 9, 20, 0.2);
+}
+
+.poster-pop-shadow {
+  box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.9), 0 18px 36px -18px rgba(0, 0, 0, 0.9);
+}
+
+.hover-info-reveal {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.4s var(--ease), transform 0.4s var(--ease);
+}
+
+.group:hover .hover-info-reveal {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.nav-link-underline {
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s var(--ease);
+}
+
+.active .nav-link-underline,
+.nav-link:hover .nav-link-underline {
+  transform: scaleX(1);
+}
+
+.parallax-bg {
+  will-change: transform;
+}
+
+/* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
     animation-duration: 0.01ms !important;
@@ -64,8 +176,14 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  .animate-kenburns {
+  .animate-kenburns, .shimmer-bg, .top-loader {
     animation: none !important;
+  }
+}
+
+@media (hover: none) {
+  .row-arrows {
+    display: none !important;
   }
 }
 

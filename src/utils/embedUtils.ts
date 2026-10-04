@@ -17,6 +17,8 @@ export function isDirectVideoUrl(url?: string): boolean {
 export function isEmbedUrl(url?: string): boolean {
   if (!url || typeof url !== 'string') return false;
   const clean = url.trim().toLowerCase();
+  
+  // Explicitly check for known embed patterns
   if (
     clean.includes('/embed') ||
     clean.includes('vidsrc') ||
@@ -33,7 +35,13 @@ export function isEmbedUrl(url?: string): boolean {
   ) {
     return true;
   }
-  return !isDirectVideoUrl(url);
+  
+  // If it's a full URL but NOT a direct video file, assume it's an embed/watch page
+  if ((clean.startsWith('http://') || clean.startsWith('https://')) && !isDirectVideoUrl(url)) {
+    return true;
+  }
+
+  return false;
 }
 
 /**

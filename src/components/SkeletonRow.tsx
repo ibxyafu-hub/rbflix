@@ -7,11 +7,11 @@ export const SkeletonRow: React.FC = () => {
       <div className="h-6 w-44 bg-zinc-800/80 rounded mb-4" />
 
       {/* Skeleton Cards Row */}
-      <div className="flex gap-4 overflow-hidden">
+      <div className="flex gap-4 overflow-hidden pt-10 pb-16">
         {[...Array(6)].map((_, i) => (
           <div
             key={i}
-            className="flex-none w-[170px] sm:w-[200px] md:w-[230px] lg:w-[250px] aspect-[2/3] bg-zinc-800/60 rounded-md border border-zinc-700/30 overflow-hidden relative"
+            className="flex-none w-[160px] sm:w-[200px] md:w-[230px] lg:w-[260px] aspect-[2/3] bg-zinc-800/60 rounded-lg border border-zinc-700/30 overflow-hidden relative"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
             <div className="p-3 absolute bottom-0 left-0 right-0 space-y-2">

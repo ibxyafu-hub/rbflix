@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation, useParams } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
 import { Navbar } from './components/Navbar';
@@ -15,6 +15,10 @@ import { MovieDetailPage } from './pages/MovieDetailPage';
 import { SeriesDetailPage } from './pages/SeriesDetailPage';
 import { MyListPage } from './pages/MyListPage';
 import { SearchPage } from './pages/SearchPage';
+import { WatchPage } from './pages/WatchPage';
+import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
+import { TermsOfUsePage } from './pages/TermsOfUsePage';
+import { AdminSubtitlePage } from './pages/AdminSubtitlePage';
 import { MovieDetailsModal } from './components/MovieDetailsModal';
 import { VideoPlayer } from './components/VideoPlayer';
 import { AuthModal } from './components/AuthModal';
@@ -22,111 +26,7 @@ import { Toast } from './components/Toast';
 import { contentService } from './services/contentService';
 import { Episode, Season } from './types/content';
 import { AnimatePresence } from 'framer-motion';
-
-/**
- * Route handler for direct /watch/movie/:id route
- */
-const WatchMovieRoute: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const { activePlayerPayload, openPlayer, closePlayer, showToast } = useApp();
-
-  useEffect(() => {
-    if (id && (!activePlayerPayload || activePlayerPayload.content.id !== id)) {
-      contentService.getMovieById(id).then(movie => {
-        if (movie) {
-          openPlayer(movie);
-        } else {
-          showToast('Requested movie is unavailable.');
-          navigate('/movies', { replace: true });
-        }
-      });
-    }
-  }, [id, activePlayerPayload, openPlayer, navigate, showToast]);
-
-  const handleClose = () => {
-    closePlayer();
-    if (window.history.length > 2) {
-      navigate(-1);
-    } else {
-      navigate('/movies', { replace: true });
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-black">
-      <AnimatePresence mode="wait">
-        {activePlayerPayload && (
-          <VideoPlayer
-            key={activePlayerPayload.content.id}
-            movie={activePlayerPayload.content}
-            content={activePlayerPayload.content}
-            episode={activePlayerPayload.episode}
-            season={activePlayerPayload.season}
-            initialTime={activePlayerPayload.initialTime}
-            onClose={handleClose}
-          />
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
-
-/**
- * Route handler for direct /watch/series/:seriesId/:episodeId route
- */
-const WatchSeriesRoute: React.FC = () => {
-  const { seriesId, episodeId } = useParams<{ seriesId: string; episodeId: string }>();
-  const navigate = useNavigate();
-  const { activePlayerPayload, openPlayer, closePlayer, showToast } = useApp();
-
-  useEffect(() => {
-    if (seriesId && episodeId) {
-      contentService.getEpisodeById(seriesId, episodeId).then(res => {
-        if (res) {
-          openPlayer(res.series, res.episode, res.season);
-        } else {
-          showToast('Requested episode is unavailable.');
-          navigate('/series', { replace: true });
-        }
-      });
-    }
-  }, [seriesId, episodeId, openPlayer, navigate, showToast]);
-
-  const handleNextEpisode = (nextEp: Episode, nextSeason: Season) => {
-    if (seriesId) {
-      navigate(`/watch/series/${seriesId}/${nextEp.id}`, { replace: true });
-    }
-  };
-
-  const handleClose = () => {
-    closePlayer();
-    if (window.history.length > 2) {
-      navigate(-1);
-    } else {
-      navigate('/series', { replace: true });
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-black">
-      <AnimatePresence mode="wait">
-        {activePlayerPayload && (
-          <VideoPlayer
-            key={activePlayerPayload.content.id + (activePlayerPayload.episode?.id || '')}
-            movie={activePlayerPayload.content}
-            content={activePlayerPayload.content}
-            episode={activePlayerPayload.episode}
-            season={activePlayerPayload.season}
-            initialTime={activePlayerPayload.initialTime}
-            onNextEpisode={handleNextEpisode}
-            onClose={handleClose}
-          />
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
+import { ArrowUp } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
   const navigate = useNavigate();
@@ -142,11 +42,33 @@ const MainLayout: React.FC = () => {
     setSearchQuery,
   } = useApp();
 
-  // Determine active navigation tab from URL pathname
+  const [isLoadingRoute, setIsLoadingRoute] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  // Trigger top loading bar on route change
+  useEffect(() => {
+    setIsLoadingRoute(true);
+    const timer = setTimeout(() => setIsLoadingRoute(false), 1300);
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
+
+  // Monitor scroll for Back-to-Top button (>600px)
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 600);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const getCurrentTab = () => {
     const path = location.pathname;
-    if (path.startsWith('/movies') || path.startsWith('/movie/')) return 'movies';
-    if (path.startsWith('/series')) return 'series';
+    if (path.startsWith('/movies') || path.startsWith('/movie/') || path.startsWith('/watch/movie/')) return 'movies';
+    if (path.startsWith('/series') || path.startsWith('/watch/series/')) return 'series';
     if (path.startsWith('/my-list')) return 'mylist';
     if (path.startsWith('/search') || searchQuery.trim().length > 0) return 'search';
     return 'home';
@@ -201,12 +123,20 @@ const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#141414] text-white flex flex-col font-sans selection:bg-[#e50914] selection:text-white antialiased overflow-x-hidden">
+    <div className="min-h-screen bg-[#141414] text-white flex flex-col font-sans selection:bg-[#e50914] selection:text-white antialiased overflow-x-hidden relative">
+      {/* Top 3px Loading Indicator */}
+      {isLoadingRoute && <div className="top-loader" />}
+
       {/* Fixed Navbar */}
-      <Navbar currentTab={currentTab} onTabChange={handleTabChange} />
+      {!location.pathname.includes('/watch/') && (
+        <Navbar currentTab={currentTab} onTabChange={handleTabChange} />
+      )}
 
       {/* Main Content Area */}
-      <main className="flex-1">
+      <main 
+        className="flex-1 transition-opacity duration-300 ease-[var(--ease)]"
+        style={{ opacity: isLoadingRoute ? 0 : 1 }}
+      >
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/movies" element={<MoviesPage />} />
@@ -215,8 +145,11 @@ const MainLayout: React.FC = () => {
           <Route path="/series/:id" element={<SeriesDetailPage />} />
           <Route path="/my-list" element={<MyListPage onNavigateHome={() => handleTabChange('home')} />} />
           <Route path="/search" element={<SearchPage onClearSearch={handleClearSearch} />} />
-          <Route path="/watch/movie/:id" element={<WatchMovieRoute />} />
-          <Route path="/watch/series/:seriesId/:episodeId" element={<WatchSeriesRoute />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms-of-use" element={<TermsOfUsePage />} />
+          <Route path="/watch/movie/:id" element={<WatchPage />} />
+          <Route path="/watch/series/:seriesId/:episodeId" element={<WatchPage />} />
+          <Route path="/admin/subtitles" element={<AdminSubtitlePage />} />
           <Route path="*" element={<HomePage />} />
         </Routes>
       </main>
@@ -229,7 +162,7 @@ const MainLayout: React.FC = () => {
         <MovieDetailsModal movie={activeModalItem} onClose={handleModalClose} />
       )}
 
-      {/* Fullscreen Video Player Modal (Triggered inside views) */}
+      {/* Fullscreen Video Player Modal */}
       <AnimatePresence mode="wait">
         {activePlayerPayload && !location.pathname.startsWith('/watch/') && (
           <VideoPlayer

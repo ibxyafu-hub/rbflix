@@ -1,23 +1,15 @@
 import React from 'react';
-import { Globe, Github, Twitter, Instagram, Youtube } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Globe, Instagram, Send } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="mt-20 border-t border-zinc-800/80 bg-[#111111] text-[#b3b3b3] py-12 px-4 sm:px-6 lg:px-8">
+    <footer className="mt-10 border-t border-zinc-800/80 bg-[#111111] text-[#b3b3b3] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Social Icons */}
         <div className="flex items-center gap-6 text-zinc-300">
           <a
-            href="https://twitter.com"
-            target="_blank"
-            rel="noreferrer"
-            className="hover:text-white transition-colors"
-            aria-label="Twitter"
-          >
-            <Twitter className="w-5 h-5" />
-          </a>
-          <a
-            href="https://instagram.com"
+            href="https://www.instagram.com/apex.creativesaio?stkn=MXF1NHM2NTN3aGltOA=="
             target="_blank"
             rel="noreferrer"
             className="hover:text-white transition-colors"
@@ -26,73 +18,46 @@ export const Footer: React.FC = () => {
             <Instagram className="w-5 h-5" />
           </a>
           <a
-            href="https://youtube.com"
+            href="https://t.me/apex_creativesaio"
             target="_blank"
             rel="noreferrer"
             className="hover:text-white transition-colors"
-            aria-label="YouTube"
+            aria-label="Telegram"
           >
-            <Youtube className="w-5 h-5" />
-          </a>
-          <a
-            href="https://github.com"
-            target="_blank"
-            rel="noreferrer"
-            className="hover:text-white transition-colors"
-            aria-label="GitHub"
-          >
-            <Github className="w-5 h-5" />
+            <Send className="w-5 h-5" />
           </a>
         </div>
 
         {/* Links Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 text-xs text-[#b3b3b3]">
+        <div className="grid grid-cols-2 gap-4 sm:gap-12 text-xs text-[#b3b3b3] max-w-lg">
           <div className="space-y-3">
-            <p className="hover:underline cursor-pointer hover:text-zinc-200">Audio Description</p>
-            <p className="hover:underline cursor-pointer hover:text-zinc-200">Investor Relations</p>
-            <p className="hover:underline cursor-pointer hover:text-zinc-200">Legal Notices</p>
-            <p className="hover:underline cursor-pointer hover:text-zinc-200">Help Center</p>
+            <a 
+              href="https://t.me/Raf_babi" 
+              target="_blank" 
+              rel="noreferrer" 
+              className="block hover:underline hover:text-zinc-200"
+            >
+              Help Center
+            </a>
+            <a 
+              href="https://t.me/apexcreativesaio" 
+              target="_blank" 
+              rel="noreferrer" 
+              className="block hover:underline hover:text-zinc-200"
+            >
+              Corporate Information
+            </a>
           </div>
 
           <div className="space-y-3">
-            <p className="hover:underline cursor-pointer hover:text-zinc-200">Gift Cards</p>
-            <p className="hover:underline cursor-pointer hover:text-zinc-200">Terms of Use</p>
-            <p className="hover:underline cursor-pointer hover:text-zinc-200">Corporate Information</p>
-            <p className="hover:underline cursor-pointer hover:text-zinc-200">Contact Us</p>
+            <Link to="/privacy-policy" className="block hover:underline hover:text-zinc-200">Privacy Policy</Link>
+            <Link to="/terms-of-use" className="block hover:underline hover:text-zinc-200">Terms of Use</Link>
           </div>
-
-          <div className="space-y-3">
-            <p className="hover:underline cursor-pointer hover:text-zinc-200">Media Center</p>
-            <p className="hover:underline cursor-pointer hover:text-zinc-200">Privacy Policy</p>
-            <p className="hover:underline cursor-pointer hover:text-zinc-200">Cookie Preferences</p>
-            <p className="hover:underline cursor-pointer hover:text-zinc-200">Jobs</p>
-          </div>
-
-          <div className="space-y-3">
-            <p className="hover:underline cursor-pointer hover:text-zinc-200">Audio & Subtitles</p>
-            <p className="hover:underline cursor-pointer hover:text-zinc-200">Impressum</p>
-            <p className="hover:underline cursor-pointer hover:text-zinc-200">Speed Test</p>
-            <p className="hover:underline cursor-pointer hover:text-zinc-200">Ad Choices</p>
-          </div>
-        </div>
-
-        {/* Language selector button */}
-        <div className="pt-2">
-          <button
-            onClick={() => alert('English (US) currently active')}
-            className="flex items-center gap-2 border border-zinc-700 hover:border-zinc-500 text-xs px-3 py-1.5 rounded text-zinc-300 hover:text-white transition-colors"
-          >
-            <Globe className="w-3.5 h-3.5" />
-            <span>English</span>
-          </button>
         </div>
 
         {/* Brand Copyright */}
         <div className="text-[11px] text-zinc-500 pt-2 space-y-1">
           <p>© {new Date().getFullYear()} RBflix, Inc. All rights reserved.</p>
-          <p className="text-[10px] text-zinc-600">
-            RBflix is an independent cinematic streaming interface built with React and Tailwind CSS.
-          </p>
         </div>
       </div>
     </footer>

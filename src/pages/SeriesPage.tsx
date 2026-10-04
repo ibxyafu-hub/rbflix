@@ -6,7 +6,8 @@ import { MovieRow } from '../components/MovieRow';
 import { SkeletonRow } from '../components/SkeletonRow';
 import { ErrorState } from '../components/ErrorState';
 import { EmptyState } from '../components/EmptyState';
-import { Filter, LayoutGrid, Rows, Tv, ArrowLeft } from 'lucide-react';
+import { Filter, LayoutGrid, Rows, Tv } from 'lucide-react';
+import { BackButton } from '../components/BackButton';
 
 export const SeriesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -32,18 +33,6 @@ export const SeriesPage: React.FC = () => {
 
   return (
     <div className="min-h-screen pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in duration-300">
-      {/* Top Back Navigation Breadcrumb */}
-      <div>
-        <button
-          onClick={handleBack}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer group py-1"
-          aria-label="Back to home"
-        >
-          <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-          <span>Back</span>
-        </button>
-      </div>
-
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
         <div>

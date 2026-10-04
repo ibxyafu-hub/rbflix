@@ -8,13 +8,13 @@ import {
   Clock,
   Calendar,
   Shield,
-  ArrowLeft,
   Share2,
   Film,
   Sparkles,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
+import { BackButton } from '../components/BackButton';
 import { contentService } from '../services/contentService';
 import { tmdbService, TmdbEnrichedDetails, TmdbCastMember } from '../services/tmdbService';
 import { Movie, ContentItem, isMovie } from '../types/content';
@@ -116,18 +116,6 @@ export const MovieDetailPage: React.FC = () => {
           <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/80 to-transparent" />
         </div>
 
-        {/* Back Navigation Button */}
-        <div className="absolute top-20 left-4 sm:left-8 z-30">
-          <button
-            onClick={handleBack}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 hover:bg-black/80 text-white/90 hover:text-white backdrop-blur-md border border-white/10 text-xs font-semibold shadow-lg transition-all hover:scale-105 active:scale-95 cursor-pointer"
-            aria-label="Back to browse"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back</span>
-          </button>
-        </div>
-
         {/* Hero Content Container */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-10 sm:pb-14 w-full">
           <div className="flex flex-col md:flex-row gap-6 sm:gap-10 items-start md:items-end">
@@ -214,7 +202,7 @@ export const MovieDetailPage: React.FC = () => {
               <div className="flex flex-wrap items-center gap-3 pt-3">
                 {/* Main Play Button */}
                 <button
-                  onClick={() => openPlayer(movie)}
+                  onClick={() => navigate(`/watch/movie/${movie.id}`)}
                   className="flex items-center justify-center gap-2.5 px-7 py-3 bg-white text-black font-extrabold text-sm sm:text-base rounded-md hover:bg-white/90 active:scale-95 transition-all shadow-xl shadow-black/60 group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                   aria-label={`Play ${movie.title}`}
                 >

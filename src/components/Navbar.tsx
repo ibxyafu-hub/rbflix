@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, Bell, Menu, X, User, Settings, LogOut, Check, Heart, Film } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { BackButton } from './BackButton';
 
 interface NavbarProps {
   currentTab: string;
@@ -8,6 +10,8 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ currentTab, onTabChange }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const {
     user,
     logout,
@@ -17,26 +21,65 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onTabChange }) => {
     myList,
   } = useApp();
 
+  // Determine if we should show a back button in the global navbar
+  const isDetailPage = location.pathname.includes('/movie/') || 
+                       location.pathname.includes('/series/') || 
+                       location.pathname.includes('/admin/');
+  
+  // Don't show back on top-level category pages
+  const isTopLevel = location.pathname === '/' || 
+                     location.pathname === '/movies' || 
+                     location.pathname === '/series' || 
+                     location.pathname === '/my-list' || 
+                     location.pathname === '/search';
+  
+  const showBack = isDetailPage && !isTopLevel;
+  const fallbackPath = location.pathname.includes('/movie/') ? '/movies' : 
+                       location.pathname.includes('/series/') ? '/series' : '/';
+
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  
   const searchInputRef = useRef<HTMLInputElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Monitor scroll for header background
+  // Entrance animation trigger
+  useEffect(() => {
+    const timer = setTimeout(() => setIsMounted(true), 150);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Monitor scroll for header background and hiding/revealing navbar
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 40) {
-        setIsScrolled(true);
+      const currentScrollY = window.scrollY;
+      const scrollDelta = currentScrollY - lastScrollY;
+
+      // Header background
+      setIsScrolled(currentScrollY > 40);
+
+      // Hide/reveal logic
+      if (currentScrollY > 220) {
+        if (scrollDelta > 6) {
+          setIsVisible(false); // scrolling down
+        } else if (scrollDelta < -6) {
+          setIsVisible(true); // scrolling up
+        }
       } else {
-        setIsScrolled(false);
+        setIsVisible(true);
       }
+
+      setLastScrollY(currentScrollY);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [lastScrollY]);
 
   // Auto focus when search expands
   useEffect(() => {
@@ -93,22 +136,34 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onTabChange }) => {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-40 transition-colors duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 transform ease-[var(--ease)] ${
+        isVisible ? 'translate-y-0' : '-translate-y-full'
+      } ${
         isScrolled
-          ? 'bg-[#141414] shadow-md shadow-black/50 border-b border-white/5'
-          : 'bg-gradient-to-b from-black/80 via-black/40 to-transparent'
+          ? 'bg-[#0b0b10]/78 backdrop-blur-[14px] shadow-lg shadow-black/60 border-b border-white/10'
+          : 'bg-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between gap-4">
         {/* Left: Brand Logo & Desktop Nav Links */}
-        <div className="flex items-center gap-6 md:gap-8">
-          {/* Brand Wordmark - Strict 1 text element, bold red #e50914 */}
+        <div className="flex items-center gap-4 md:gap-8">
+          {showBack && (
+            <div className="animate-in slide-in-from-left-2 duration-300">
+              <BackButton fallbackPath={fallbackPath} className="!bg-transparent !border-zinc-700/50" />
+            </div>
+          )}
+          
           <button
             onClick={() => {
               clearSearch();
               onTabChange('home');
             }}
-            className="text-2xl sm:text-3xl font-black tracking-tighter text-[#e50914] select-none hover:opacity-95 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded"
+            style={{ 
+              transition: 'opacity 0.5s var(--ease), transform 0.5s var(--ease)',
+              opacity: isMounted ? 1 : 0,
+              transform: isMounted ? 'translateY(0)' : 'translateY(20px)'
+            }}
+            className="text-2xl sm:text-3xl font-black tracking-tighter text-[#e50914] select-none hover:opacity-95 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded flex items-center"
             aria-label="RBflix Home"
           >
             RBFLIX
@@ -116,7 +171,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onTabChange }) => {
 
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center gap-5 lg:gap-6 text-sm font-medium">
-            {navLinks.map(link => {
+            {navLinks.map((link, i) => {
               const isActive = currentTab === link.id;
               return (
                 <button
@@ -125,9 +180,15 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onTabChange }) => {
                     if (currentTab === 'search') setSearchQuery('');
                     onTabChange(link.id);
                   }}
-                  className={`transition-colors whitespace-nowrap relative py-1 focus-visible:outline-none focus-visible:text-white ${
+                  style={{ 
+                    transition: 'opacity 0.5s var(--ease), transform 0.5s var(--ease)',
+                    transitionDelay: isMounted ? `${(i + 1) * 50}ms` : '0ms',
+                    opacity: isMounted ? 1 : 0,
+                    transform: isMounted ? 'translateY(0)' : 'translateY(20px)'
+                  }}
+                  className={`nav-link transition-colors whitespace-nowrap relative py-1 focus-visible:outline-none focus-visible:text-white group ${
                     isActive
-                      ? 'text-white font-semibold'
+                      ? 'text-white font-semibold active'
                       : 'text-[#b3b3b3] hover:text-white'
                   }`}
                 >
@@ -137,21 +198,28 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onTabChange }) => {
                       {link.count}
                     </span>
                   )}
-                  {isActive && (
-                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#e50914] rounded-full" />
-                  )}
+                  {/* Red underline growing with scaleX */}
+                  <span
+                    className={`absolute bottom-0 left-0 right-0 h-0.5 bg-[#e50914] rounded-full transition-transform duration-300 origin-left ${
+                      isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
+                    }`}
+                  />
                 </button>
               );
             })}
           </nav>
         </div>
 
-        {/* Right Zone: Search, Notifications, Profile Dropdown, Mobile Hamburger */}
+        {/* Right Zone: Search, Profile Dropdown, Mobile Hamburger */}
         <div className="flex items-center gap-3 sm:gap-4">
           {/* Live Expandable Search Bar */}
           <div className="relative flex items-center">
             <div
-              className={`flex items-center transition-all duration-300 rounded-full ${
+              style={{
+                transition: 'width 0.4s var(--ease), background-color 0.4s var(--ease)',
+                transformOrigin: 'right'
+              }}
+              className={`flex items-center rounded-full overflow-hidden ${
                 isSearchExpanded
                   ? 'w-48 sm:w-64 md:w-72 bg-black/80 border border-zinc-700 px-3 py-1.5 shadow-inner'
                   : 'w-9 h-9 justify-center bg-transparent'
@@ -166,27 +234,26 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onTabChange }) => {
                 <Search className="w-5 h-5 shrink-0" />
               </button>
 
-              {isSearchExpanded && (
-                <div className="flex items-center flex-1 ml-2">
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    placeholder="Titles, people, genres..."
-                    className="w-full bg-transparent text-white text-xs sm:text-sm placeholder-zinc-500 focus:outline-none"
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={clearSearch}
-                      className="text-zinc-400 hover:text-white text-xs p-1 ml-1"
-                      aria-label="Clear search"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-              )}
+              <div className={`flex items-center flex-1 ml-2 transition-opacity duration-300 ${isSearchExpanded ? 'opacity-100' : 'opacity-0'}`}>
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  placeholder="Titles, people, genres..."
+                  className="w-full bg-transparent text-white text-xs sm:text-sm placeholder-zinc-500 focus:outline-none"
+                  disabled={!isSearchExpanded}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={clearSearch}
+                    className="text-zinc-400 hover:text-white text-xs p-1 ml-1"
+                    aria-label="Clear search"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -239,6 +306,17 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onTabChange }) => {
                     >
                       <Film className="w-4 h-4 text-[#e50914]" />
                       <span>My List ({myList.length})</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setIsProfileDropdownOpen(false);
+                        navigate('/admin/subtitles');
+                      }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition-colors text-left"
+                    >
+                      <Settings className="w-4 h-4 text-emerald-500" />
+                      <span>Subtitle Admin</span>
                     </button>
 
                     <button

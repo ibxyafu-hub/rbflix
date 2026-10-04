@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, ArrowLeft, Play, Plus, Check, ThumbsUp, Star, Share2, Film, Tv, Clock } from 'lucide-react';
 import { ContentItem, Movie, Series, Episode, Season, isSeries } from '../types/content';
 import { useApp } from '../context/AppContext';
@@ -20,6 +21,8 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({ movie: ini
     showToast,
   } = useApp();
 
+  const navigate = useNavigate();
+
   // Internal history stack for exploring related titles within modal
   const [historyStack, setHistoryStack] = useState<ContentItem[]>([initialMovie]);
   const currentMovie = historyStack[historyStack.length - 1];
@@ -36,12 +39,18 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({ movie: ini
   // Selected season for series
   const [selectedSeasonNumber, setSelectedSeasonNumber] = useState<number>(1);
   const [relatedContent, setRelatedContent] = useState<ContentItem[]>([]);
+  const [isContentVisible, setIsContentVisible] = useState(false);
 
   // When initialMovie prop changes from parent
   useEffect(() => {
     setHistoryStack([initialMovie]);
     setSelectedSeasonNumber(1);
   }, [initialMovie]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsContentVisible(true), 250);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Load related items via contentService whenever current movie in stack changes
   useEffect(() => {
@@ -113,22 +122,33 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({ movie: ini
 
   const handleMainPlay = () => {
     onClose();
-    if (isSeriesContent && series && series.seasons && series.seasons.length > 0) {
-      const activeSeason = series.seasons.find(s => s.seasonNumber === selectedSeasonNumber) || series.seasons[0];
-      const activeEpisode = activeSeason?.episodes?.[0];
-      if (activeEpisode && activeSeason) {
-        openPlayer(currentMovie, activeEpisode, activeSeason);
-      } else {
-        openPlayer(currentMovie);
+    if (isSeriesContent) {
+      if (series?.seasons && series.seasons.length > 0) {
+        const activeSeason = series.seasons.find(s => s.seasonNumber === selectedSeasonNumber) || series.seasons[0];
+        const activeEpisode = activeSeason?.episodes?.[0];
+        if (activeEpisode) {
+          navigate(`/watch/series/${currentMovie.id}/${activeEpisode.id}`);
+        } else {
+          navigate(`/watch/series/${currentMovie.id}/default`);
+        }
       }
     } else {
-      openPlayer(currentMovie);
+      navigate(`/watch/movie/${currentMovie.id}`);
     }
   };
 
   const handleEpisodePlay = (season: Season, episode: Episode) => {
     onClose();
-    openPlayer(currentMovie, episode, season);
+    navigate(`/watch/series/${currentMovie.id}/${episode.id}`);
+  };
+
+  const handleMyListClick = () => {
+    const btn = document.getElementById('mylist-btn');
+    if (btn) {
+      btn.style.animation = 'popScale 0.4s var(--ease)';
+      setTimeout(() => { btn.style.animation = ''; }, 400);
+    }
+    toggleMyList(currentMovie.id);
   };
 
   // Get active season & its episodes
@@ -141,14 +161,19 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({ movie: ini
   return (
     <div
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 md:p-6 animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 md:p-6 transition-opacity duration-[var(--dur)] ease-[var(--ease)]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-movie-title"
     >
       <div
         ref={modalRef}
-        className="relative w-full max-w-4xl max-h-[92vh] sm:max-h-[88vh] bg-[#181818] rounded-xl overflow-hidden shadow-2xl border border-zinc-700/80 flex flex-col my-auto animate-in zoom-in-95 duration-200"
+        style={{ 
+          transition: 'opacity var(--dur) var(--ease), transform var(--dur) var(--ease)',
+          transform: isContentVisible ? 'scale(1) translateY(0)' : 'scale(0.95) translateY(20px)',
+          opacity: isContentVisible ? 1 : 0
+        }}
+        className="relative w-full max-w-4xl max-h-[92vh] sm:max-h-[88vh] bg-[#181818] rounded-xl overflow-hidden shadow-2xl border border-zinc-700/80 flex flex-col my-auto"
       >
         {/* Navigation Action Bar Top (Back & Close Buttons) */}
         <div className="absolute top-3 left-3 right-3 sm:top-4 sm:left-4 sm:right-4 z-40 flex items-center justify-between pointer-events-none">
@@ -169,7 +194,7 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({ movie: ini
           {/* Close Button Top Right */}
           <button
             onClick={onClose}
-            className="pointer-events-auto w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black/75 hover:bg-black text-white flex items-center justify-center border border-zinc-600/80 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xl backdrop-blur-sm ml-auto"
+            className="pointer-events-auto w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black/75 hover:bg-black text-white flex items-center justify-center border border-zinc-600/80 transition-all hover:rotate-90 hover:scale-105 active:scale-95 cursor-pointer shadow-xl backdrop-blur-sm ml-auto"
             aria-label="Close details modal"
             title="Close"
           >
@@ -191,7 +216,15 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({ movie: ini
             <div className="absolute inset-0 bg-gradient-to-r from-[#181818] via-[#181818]/60 to-transparent w-3/4" />
 
             {/* Hero Content Overlay */}
-            <div className="absolute bottom-5 sm:bottom-8 left-5 sm:left-8 right-5 z-20 space-y-3">
+            <div 
+              style={{ 
+                transition: 'opacity 0.6s var(--ease), transform 0.6s var(--ease)',
+                transitionDelay: '100ms',
+                opacity: isContentVisible ? 1 : 0,
+                transform: isContentVisible ? 'translateY(0)' : 'translateY(22px)'
+              }}
+              className="absolute bottom-5 sm:bottom-8 left-5 sm:left-8 right-5 z-20 space-y-3"
+            >
               <div className="flex items-center gap-2">
                 {currentMovie.isOriginal && (
                   <span className="inline-flex items-center gap-1.5 text-xs font-black tracking-widest text-[#e50914] bg-black/60 px-2 py-0.5 rounded border border-red-500/20">
@@ -222,7 +255,8 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({ movie: ini
                 </button>
 
                 <button
-                  onClick={() => toggleMyList(currentMovie.id)}
+                  id="mylist-btn"
+                  onClick={handleMyListClick}
                   className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full border flex items-center justify-center transition-all cursor-pointer ${
                     inList
                       ? 'border-[#e50914] bg-[#e50914]/20 text-[#e50914]'
@@ -263,13 +297,18 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({ movie: ini
           <div className="px-5 sm:px-8 py-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
               {/* Left 2 cols: Synopsis & Badges */}
-              <div className="md:col-span-2 space-y-4">
+              <div 
+                style={{ 
+                  transition: 'opacity 0.6s var(--ease), transform 0.6s var(--ease)',
+                  transitionDelay: '200ms',
+                  opacity: isContentVisible ? 1 : 0,
+                  transform: isContentVisible ? 'translateY(0)' : 'translateY(22px)'
+                }}
+                className="md:col-span-2 space-y-4"
+              >
                 <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 text-xs sm:text-sm text-zinc-300">
                   <span className="text-emerald-400 font-bold">{currentMovie.matchScore || 98}% Match</span>
                   <span>{currentMovie.year}</span>
-                  <span className="px-1.5 py-0.5 text-xs border border-zinc-600 rounded text-zinc-300">
-                    {currentMovie.maturityRating || '16+'}
-                  </span>
                   <span>{durationDisplay}</span>
                   <span className="px-1.5 py-0.5 text-[10px] font-semibold tracking-wider border border-zinc-500/60 rounded text-zinc-300">
                     {currentMovie.quality || '4K Ultra HD'}
@@ -286,7 +325,15 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({ movie: ini
               </div>
 
               {/* Right 1 col: Cast, Director, Genres */}
-              <div className="space-y-2.5 text-xs sm:text-sm border-t md:border-t-0 md:border-l border-zinc-800 pt-4 md:pt-0 md:pl-6">
+              <div 
+                style={{ 
+                  transition: 'opacity 0.6s var(--ease), transform 0.6s var(--ease)',
+                  transitionDelay: '300ms',
+                  opacity: isContentVisible ? 1 : 0,
+                  transform: isContentVisible ? 'translateY(0)' : 'translateY(22px)'
+                }}
+                className="space-y-2.5 text-xs sm:text-sm border-t md:border-t-0 md:border-l border-zinc-800 pt-4 md:pt-0 md:pl-6"
+              >
                 <div>
                   <span className="text-zinc-500">Cast: </span>
                   <span className="text-zinc-300">{currentMovie.cast?.join(', ') || 'N/A'}</span>
@@ -387,13 +434,12 @@ export const MovieDetailsModal: React.FC<MovieDetailsModalProps> = ({ movie: ini
                       </div>
 
                       {/* Play Action */}
-                      <button
-                        type="button"
+                      <div
                         className="self-end sm:self-center p-2 rounded-full bg-zinc-800 group-hover/ep:bg-[#e50914] text-white transition-colors cursor-pointer"
                         title={`Play Episode ${episode.episodeNumber}`}
                       >
                         <Play className="w-4 h-4 fill-white" />
-                      </button>
+                      </div>
                     </div>
                   ))}
                 </div>

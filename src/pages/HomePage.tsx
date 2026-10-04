@@ -9,7 +9,6 @@ import {
   useTrendingContent,
   useTopRatedContent,
   useContentByGenre,
-  useWatchHistory,
 } from '../hooks/useContent';
 import { useApp } from '../context/AppContext';
 import { ContentItem } from '../types/content';
@@ -61,20 +60,6 @@ export const HomePage: React.FC = () => {
     refetch: refetchComedy,
   } = useContentByGenre('Comedy');
 
-  const { history: watchHistory } = useWatchHistory();
-
-  // Continue watching content list from watchHistory
-  const continueWatchingItems = React.useMemo(() => {
-    // Map watch history to mock items
-    const allKnown = [...trending, ...topRated, ...actionItems, ...scifiItems, ...comedyItems, ...featured];
-    const uniqueMap = new Map<string, ContentItem>();
-    allKnown.forEach(item => uniqueMap.set(item.id, item));
-
-    return watchHistory
-      .map(hist => uniqueMap.get(hist.contentId))
-      .filter((item): item is ContentItem => item !== undefined);
-  }, [watchHistory, trending, topRated, actionItems, scifiItems, comedyItems, featured]);
-
   // Extract RBflix Originals
   const originals = React.useMemo(() => {
     const all = [...trending, ...topRated, ...actionItems, ...scifiItems, ...comedyItems, ...featured];
@@ -103,22 +88,20 @@ export const HomePage: React.FC = () => {
       ) : (
         <HeroBanner
           items={featured}
-          onPlay={openPlayer}
+          onPlay={(item) => {
+            if (item.type === 'series') {
+              const firstEpId = item.seasons?.[0]?.episodes?.[0]?.id || 'default';
+              navigate(`/watch/series/${item.id}/${firstEpId}`);
+            } else {
+              navigate(`/watch/movie/${item.id}`);
+            }
+          }}
           onMoreInfo={(item) => navigate(item.type === 'series' ? `/series/${item.id}` : `/movie/${item.id}`)}
         />
       )}
 
       {/* Rows Container */}
-      <div className="-mt-12 sm:-mt-16 relative z-30 space-y-2">
-        {/* Continue Watching (Only if items exist) */}
-        {continueWatchingItems.length > 0 && (
-          <MovieRow
-            title="Continue Watching"
-            movies={continueWatchingItems}
-            showProgress={true}
-          />
-        )}
-
+      <div className="-mt-20 sm:-mt-28 relative z-30 space-y-2">
         {/* Trending Now */}
         <MovieRow
           title="Trending Now"

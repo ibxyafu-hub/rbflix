@@ -7,7 +7,6 @@ import {
   Star,
   Calendar,
   Layers,
-  ArrowLeft,
   Share2,
   Tv,
   Sparkles,
@@ -15,6 +14,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
+import { BackButton } from '../components/BackButton';
 import { contentService } from '../services/contentService';
 import { tmdbService, TmdbEnrichedDetails, TmdbCastMember } from '../services/tmdbService';
 import { Series, Episode, Season, ContentItem, isSeries } from '../types/content';
@@ -109,11 +109,11 @@ export const SeriesDetailPage: React.FC = () => {
   // Handle Play for Series: Play S1E1 or the first episode
   const handleMainPlay = () => {
     if (episodes.length > 0 && currentSeason) {
-      openPlayer(series, episodes[0], currentSeason);
+      navigate(`/watch/series/${series.id}/${episodes[0].id}`);
     } else if (seasons.length > 0 && seasons[0].episodes.length > 0) {
-      openPlayer(series, seasons[0].episodes[0], seasons[0]);
+      navigate(`/watch/series/${series.id}/${seasons[0].episodes[0].id}`);
     } else {
-      openPlayer(series);
+      navigate(`/watch/series/${series.id}/default`);
     }
   };
 
@@ -132,18 +132,6 @@ export const SeriesDetailPage: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-[#141414]/80 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#141414] via-[#141414]/60 to-transparent" />
           <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/80 to-transparent" />
-        </div>
-
-        {/* Back Navigation Button */}
-        <div className="absolute top-20 left-4 sm:left-8 z-30">
-          <button
-            onClick={handleBack}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 hover:bg-black/80 text-white/90 hover:text-white backdrop-blur-md border border-white/10 text-xs font-semibold shadow-lg transition-all hover:scale-105 active:scale-95 cursor-pointer"
-            aria-label="Back to series"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back</span>
-          </button>
         </div>
 
         {/* Hero Content Container */}
@@ -295,7 +283,7 @@ export const SeriesDetailPage: React.FC = () => {
             {episodes.map(ep => (
               <div
                 key={ep.id}
-                onClick={() => openPlayer(series, ep, currentSeason)}
+                onClick={() => navigate(`/watch/series/${series.id}/${ep.id}`)}
                 className="group flex flex-col sm:flex-row items-start sm:items-center gap-4 p-3 sm:p-4 rounded-xl bg-zinc-900/60 hover:bg-zinc-800/80 border border-zinc-800/80 hover:border-zinc-700 transition-all cursor-pointer select-none"
                 role="button"
                 tabIndex={0}

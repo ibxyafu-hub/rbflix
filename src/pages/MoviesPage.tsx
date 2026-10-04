@@ -6,7 +6,8 @@ import { MovieRow } from '../components/MovieRow';
 import { SkeletonRow } from '../components/SkeletonRow';
 import { ErrorState } from '../components/ErrorState';
 import { EmptyState } from '../components/EmptyState';
-import { LayoutGrid, Rows, Filter, Film, ArrowLeft } from 'lucide-react';
+import { LayoutGrid, Rows, Filter, Film } from 'lucide-react';
+import { BackButton } from '../components/BackButton';
 
 export const MoviesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -32,18 +33,6 @@ export const MoviesPage: React.FC = () => {
 
   return (
     <div className="min-h-screen pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in duration-300">
-      {/* Top Back Navigation Breadcrumb */}
-      <div>
-        <button
-          onClick={handleBack}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer group py-1"
-          aria-label="Back to home"
-        >
-          <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-          <span>Back</span>
-        </button>
-      </div>
-
       {/* Page Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
         <div>
@@ -129,7 +118,7 @@ export const MoviesPage: React.FC = () => {
             <span className="text-zinc-500 font-mono">Sorted by Match Score</span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-3 gap-y-6 sm:gap-x-4 sm:gap-y-10">
             {movies.map(movie => (
               <div key={movie.id} className="w-full">
                 <MovieCard movie={movie} />

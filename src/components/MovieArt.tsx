@@ -8,6 +8,7 @@ interface MoviePosterArtProps {
   className?: string;
   size?: 'sm' | 'md' | 'lg';
   showDetails?: boolean;
+  onImageLoad?: () => void;
 }
 
 export const MoviePosterArt: React.FC<MoviePosterArtProps> = ({
@@ -15,11 +16,17 @@ export const MoviePosterArt: React.FC<MoviePosterArtProps> = ({
   className = '',
   size = 'md',
   showDetails = true,
+  onImageLoad,
 }) => {
   const isSeriesContent = isSeries(movie);
   const posterUrl = getPosterUrl(movie);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+
+  const handleLoad = () => {
+    setImageLoaded(true);
+    if (onImageLoad) onImageLoad();
+  };
 
   const posterGrad = movie.posterGradient || 'from-zinc-800 via-neutral-900 to-black';
 
@@ -52,14 +59,12 @@ export const MoviePosterArt: React.FC<MoviePosterArtProps> = ({
             src={posterUrl}
             alt={movie.title}
             loading="lazy"
-            onLoad={() => setImageLoaded(true)}
+            onLoad={handleLoad}
             onError={() => setImageError(true)}
             className={`w-full h-full object-cover object-center transition-all duration-500 group-hover:scale-105 ${
               imageLoaded ? 'opacity-100' : 'opacity-0'
             }`}
           />
-          {/* Subtle bottom gradient on poster card */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
         </div>
       ) : (
         /* 2. Atmospheric Gradient Fallback */
@@ -102,9 +107,6 @@ export const MoviePosterArt: React.FC<MoviePosterArtProps> = ({
             <div className="mt-1 flex items-center gap-2 text-[10px] text-zinc-300 font-medium">
               <span className="text-emerald-400 font-semibold">{movie.matchScore || 95}% Match</span>
               <span>{movie.year}</span>
-              <span className="px-1 py-0.2 text-[8px] border border-zinc-600 rounded text-zinc-300">
-                {movie.maturityRating || '16+'}
-              </span>
               <span className="text-[9px] text-zinc-400 truncate">{durationDisplay}</span>
             </div>
           )}

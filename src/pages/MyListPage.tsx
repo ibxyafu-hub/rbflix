@@ -4,7 +4,8 @@ import { useWatchlist } from '../hooks/useContent';
 import { MovieCard } from '../components/MovieCard';
 import { SkeletonRow } from '../components/SkeletonRow';
 import { EmptyState } from '../components/EmptyState';
-import { Film, Trash2, ArrowLeft } from 'lucide-react';
+import { Film, Trash2 } from 'lucide-react';
+import { BackButton } from '../components/BackButton';
 
 interface MyListPageProps {
   onNavigateHome: () => void;
@@ -29,18 +30,6 @@ export const MyListPage: React.FC<MyListPageProps> = ({ onNavigateHome }) => {
 
   return (
     <div className="min-h-screen pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in duration-300">
-      {/* Top Back Navigation Breadcrumb */}
-      <div>
-        <button
-          onClick={handleBack}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer group py-1"
-          aria-label="Back to previous page"
-        >
-          <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-          <span>Back</span>
-        </button>
-      </div>
-
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
         <div>
@@ -116,7 +105,7 @@ export const MyListPage: React.FC<MyListPageProps> = ({ onNavigateHome }) => {
           onAction={() => setFilterType('all')}
         />
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-3 gap-y-6 sm:gap-x-4 sm:gap-y-10">
           {filteredItems.map(movie => (
             <div key={movie.id} className="relative group/myitem">
               <MovieCard movie={movie} />
